@@ -10,7 +10,7 @@ describe('Test Valist Reproducible', async () => {
     });
   });
 
-  describe('Create Build Image', async () => {
+  describe('Run Build Image', async () => {
     it('Should return true', async () => {
       expect(await reproducible.createBuildEnv({
         image: 'valist-build',
