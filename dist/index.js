@@ -17,16 +17,18 @@ const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const createImage = (dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
     const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
     const tarStream = tar.pack(context);
-    const image = yield docker.buildImage(tarStream, { t: 'valist-build' });
+    const imageStream = yield docker.buildImage(tarStream, { t: 'valist-build' });
     const buildLog = yield new Promise((resolve, reject) => {
-        docker.modem.followProgress(image, (err, res) => {
+        // Log the container build steps
+        imageStream.pipe(process.stdout);
+        docker.modem.followProgress(imageStream, (err, res) => {
             if (err) {
                 reject(err);
             }
             resolve(res);
         });
     });
-    console.log(buildLog);
+    console.log("Build has completed!");
 });
 exports.createImage = createImage;
 const createBuildEnv = ({ image, command, source }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -34,14 +36,14 @@ const createBuildEnv = ({ image, command, source }) => __awaiter(void 0, void 0,
         Image: image,
         Cmd: command,
         HostConfig: {
-            // AutoRemove: true,
+            AutoRemove: true,
             Mounts: [{
                     Target: '/opt/valist/dist',
                     Source: source,
                     Type: 'bind',
-                    ReadOnly: false
-                }]
-        }
+                    ReadOnly: false,
+                }],
+        },
     });
     container.start();
 });
