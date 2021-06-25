@@ -1,4 +1,4 @@
 FROM golang:buster
-WORKDIR /opt/test
+WORKDIR /opt/build
 COPY ./go-project/main.go ./
 RUN go build main.go

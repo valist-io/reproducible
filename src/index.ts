@@ -4,10 +4,10 @@ const path = require('path');
 
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
-export const createImage = async (dockerFilePath?: string) => {
+export const createImage = async (imageTag: string, dockerFilePath?: string) => {
   const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
   const tarStream = tar.pack(context);
-  const imageStream = await docker.buildImage(tarStream, { t: 'valist-build' });
+  const imageStream = await docker.buildImage(tarStream, { t: imageTag });
 
   const buildLog = await new Promise((resolve, reject) => {
     // Log the container build steps
@@ -26,15 +26,17 @@ export const createImage = async (dockerFilePath?: string) => {
   return buildLog;
 };
 
-export const createBuildEnv = async ({ image, command, source }: any) => {
+export const runBuild = async ({
+  image, buildPath, outputPath, artifacts,
+} : any) => {
   const container = await docker.createContainer({
     Image: image,
-    Cmd: command,
+    Cmd: ['cp', `${buildPath}/${artifacts[0]}`, `${buildPath}/${artifacts[0]}/output`],
     HostConfig: {
-      AutoRemove: true,
+      // AutoRemove: true,
       Mounts: [{
-        Target: '/opt/valist/dist',
-        Source: source,
+        Target: buildPath,
+        Source: outputPath,
         Type: 'bind',
         ReadOnly: false,
       }],

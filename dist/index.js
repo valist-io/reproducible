@@ -9,15 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createBuildEnv = exports.createImage = void 0;
+exports.runBuild = exports.createImage = void 0;
 const Docker = require('dockerode');
 const tar = require('tar-fs');
 const path = require('path');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
-const createImage = (dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
+const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
     const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
     const tarStream = tar.pack(context);
-    const imageStream = yield docker.buildImage(tarStream, { t: 'valist-build' });
+    const imageStream = yield docker.buildImage(tarStream, { t: imageTag });
     const buildLog = yield new Promise((resolve, reject) => {
         // Log the container build steps
         imageStream.pipe(process.stdout);
@@ -28,18 +28,20 @@ const createImage = (dockerFilePath) => __awaiter(void 0, void 0, void 0, functi
             resolve(res);
         });
     });
-    console.log("Build has completed!");
+    console.log('Build has completed!');
+    return buildLog;
 });
 exports.createImage = createImage;
-const createBuildEnv = ({ image, command, source }) => __awaiter(void 0, void 0, void 0, function* () {
+const runBuild = ({ image, buildPath, outputPath, artifacts, }) => __awaiter(void 0, void 0, void 0, function* () {
     const container = yield docker.createContainer({
         Image: image,
-        Cmd: command,
+        Cmd: ['pwd'],
+        // Cmd: ['cp', `${buildPath}/${artifacts[0]}`, `${buildPath}/${artifacts[0]}/output`],
         HostConfig: {
-            AutoRemove: true,
+            // AutoRemove: true,
             Mounts: [{
-                    Target: '/opt/valist/dist',
-                    Source: source,
+                    Target: buildPath,
+                    Source: outputPath,
                     Type: 'bind',
                     ReadOnly: false,
                 }],
@@ -47,5 +49,5 @@ const createBuildEnv = ({ image, command, source }) => __awaiter(void 0, void 0,
     });
     container.start();
 });
-exports.createBuildEnv = createBuildEnv;
+exports.runBuild = runBuild;
 //# sourceMappingURL=index.js.map

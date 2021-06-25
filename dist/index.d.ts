@@ -1,2 +1,2 @@
-export declare const createImage: (dockerFilePath?: string | undefined) => Promise<void>;
-export declare const createBuildEnv: ({ image, command, source }: any) => Promise<void>;
+export declare const createImage: (imageTag: string, dockerFilePath?: string | undefined) => Promise<unknown>;
+export declare const runBuild: ({ image, buildPath, outputPath, artifacts, }: any) => Promise<void>;
