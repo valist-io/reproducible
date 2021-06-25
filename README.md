@@ -30,8 +30,9 @@ import reproducible from 'reproducible';
   await reproducible.createImage('build-image');
   await reproducible.runBuild({
     image: 'build-image',
-    command: ['cp', '/opt/build/', '/opt/build/out'],
-    outputDir: `${process.cwd()}/go-project/dist`,
+    buildPath: '/opt/build',
+    outputPath: `${process.cwd()}/dist`,
+    artifacts: ['main'],
   });
 })();
 ```
