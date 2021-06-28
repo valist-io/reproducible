@@ -12,7 +12,7 @@ npm install reproducible
 
 Check out the full `go-hello-world` reproducible build example in the [examples folder](/examples);
 
-Example Build File
+#### Example Build File
 
 ```Dockerfile
 FROM golang:buster
@@ -21,7 +21,7 @@ COPY ./go-project/main.go ./
 RUN go build main.go
 ```
 
-Example Run Script
+#### Example Run Script
 
 ```javascript
 import reproducible from 'reproducible';
@@ -30,7 +30,6 @@ import reproducible from 'reproducible';
   await reproducible.createImage('build-image');
   await reproducible.runBuild({
     image: 'build-image',
-    buildPath: '/opt/build',
     outputPath: `${process.cwd()}/dist`,
     artifacts: ['main'],
   });

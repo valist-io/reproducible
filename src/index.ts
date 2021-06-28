@@ -17,7 +17,6 @@ export const createImage = async (imageTag: string, dockerFilePath?: string) => 
       if (err) {
         reject(err);
       }
-
       resolve(res);
     });
   });
@@ -26,22 +25,22 @@ export const createImage = async (imageTag: string, dockerFilePath?: string) => 
   return buildLog;
 };
 
-export const runBuild = async ({
-  image, buildPath, outputPath, artifacts,
-} : any) => {
+export const runBuild = async ({ image, outputPath, artifacts } : any) => {
   const container = await docker.createContainer({
     Image: image,
-    Cmd: ['cp', `${buildPath}/${artifacts[0]}`, `${buildPath}/${artifacts[0]}/output`],
+    Cmd: ['cp', artifacts[0], '/opt/out'],
     HostConfig: {
-      // AutoRemove: true,
+      AutoRemove: true,
       Mounts: [{
-        Target: buildPath,
+        Target: '/opt/out',
         Source: outputPath,
         Type: 'bind',
         ReadOnly: false,
       }],
     },
   });
-
   container.start();
+
+  // Clear Build Cache
+  docker.pruneBuilder();
 };

@@ -32,15 +32,14 @@ const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void
     return buildLog;
 });
 exports.createImage = createImage;
-const runBuild = ({ image, buildPath, outputPath, artifacts, }) => __awaiter(void 0, void 0, void 0, function* () {
+const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0, void 0, function* () {
     const container = yield docker.createContainer({
         Image: image,
-        Cmd: ['pwd'],
-        // Cmd: ['cp', `${buildPath}/${artifacts[0]}`, `${buildPath}/${artifacts[0]}/output`],
+        Cmd: ['cp', artifacts[0], '/opt/out'],
         HostConfig: {
-            // AutoRemove: true,
+            AutoRemove: true,
             Mounts: [{
-                    Target: buildPath,
+                    Target: '/opt/out',
                     Source: outputPath,
                     Type: 'bind',
                     ReadOnly: false,
@@ -48,6 +47,8 @@ const runBuild = ({ image, buildPath, outputPath, artifacts, }) => __awaiter(voi
         },
     });
     container.start();
+    // Clear Build Cache
+    docker.pruneBuilder();
 });
 exports.runBuild = runBuild;
 //# sourceMappingURL=index.js.map
