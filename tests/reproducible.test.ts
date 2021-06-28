@@ -14,7 +14,7 @@ describe('Test Valist Reproducible', async () => {
     it('Should return true', async () => {
       expect(await reproducible.runBuild({
         image: 'build-test',
-        outputPath: `${process.cwd()}/dist`,
+        outputPath: `${process.cwd()}/tests/dist`,
         artifacts: ['main'],
       }));
     }).timeout(100000);
