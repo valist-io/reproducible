@@ -9,7 +9,7 @@ export const createImage = async (imageTag: string, dockerFilePath?: string) => 
   const tarStream = tar.pack(context);
   const imageStream = await docker.buildImage(tarStream, { t: imageTag });
 
-  const buildLog = await new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     // Log the container build steps
     imageStream.pipe(process.stdout);
 
@@ -22,7 +22,7 @@ export const createImage = async (imageTag: string, dockerFilePath?: string) => 
   });
 
   console.log('Build has completed!');
-  return buildLog;
+  return true;
 };
 
 export const runBuild = async ({ image, outputPath, artifacts } : any) => {
@@ -30,6 +30,7 @@ export const runBuild = async ({ image, outputPath, artifacts } : any) => {
     Image: image,
     Cmd: ['cp', artifacts[0], '/opt/out'],
     HostConfig: {
+      // Cleanup container
       AutoRemove: true,
       Mounts: [{
         Target: '/opt/out',

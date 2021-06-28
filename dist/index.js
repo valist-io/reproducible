@@ -18,7 +18,7 @@ const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void
     const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
     const tarStream = tar.pack(context);
     const imageStream = yield docker.buildImage(tarStream, { t: imageTag });
-    const buildLog = yield new Promise((resolve, reject) => {
+    yield new Promise((resolve, reject) => {
         // Log the container build steps
         imageStream.pipe(process.stdout);
         docker.modem.followProgress(imageStream, (err, res) => {
@@ -29,7 +29,7 @@ const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void
         });
     });
     console.log('Build has completed!');
-    return buildLog;
+    return true;
 });
 exports.createImage = createImage;
 const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -37,6 +37,7 @@ const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0,
         Image: image,
         Cmd: ['cp', artifacts[0], '/opt/out'],
         HostConfig: {
+            // Cleanup container
             AutoRemove: true,
             Mounts: [{
                     Target: '/opt/out',
