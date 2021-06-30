@@ -1,6 +1,6 @@
 {
   "name": "reproducible",
-  "version": "0.0.3-rc.1",
+  "version": "0.0.3-rc.2",
   "description": "A library for coordinating reproducible builds with docker.",
   "main": "dist/index.js",
   "scripts": {

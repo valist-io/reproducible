@@ -47,9 +47,7 @@ const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0,
                 }],
         },
     });
-    container.start();
-    // Clear Build Cache
-    docker.pruneBuilder();
+    yield container.start();
 });
 exports.runBuild = runBuild;
 //# sourceMappingURL=index.js.map
