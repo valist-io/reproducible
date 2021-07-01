@@ -3,13 +3,15 @@ const fs = require('fs');
 const reproducible = require('../../');
 
 (async () => {
-  await reproducible.createImage('valist-build-image');
-  await reproducible.runBuild({
-    image: 'valist-build-image',
-    outputPath: path.join(process.cwd(), '/dist/'),
-    artifacts: ['main'],
-  });
+  // Generate a DockerFile for Build Pipeline
+  reproducible.generateDockerfile('golang:buster', 'src', 'go build -o ./dist/main main.go');
 
-  const releaseFile = fs.createReadStream(path.join(process.cwd(), '/dist/main'));
-  console.log('Artifact Path:', releaseFile.path);
+  // Build artifacts using docker build process and export as image
+  await reproducible.createBuild('valist-build-image');
+
+  // Export build artifacts from image
+  await reproducible.exportBuild({
+    image: 'valist-build-image',
+    out: `dist`,
+  });
 })();

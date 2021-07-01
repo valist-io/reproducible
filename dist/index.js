@@ -9,12 +9,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runBuild = exports.createImage = void 0;
+exports.exportBuild = exports.createBuild = exports.generateDockerfile = void 0;
+const fs = require('fs');
 const Docker = require('dockerode');
 const tar = require('tar-fs');
 const path = require('path');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
-const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
+const generateDockerfile = (baseImage, source, buildCommand, installCommand) => {
+    let dockerfile = `FROM ${baseImage}
+WORKDIR /opt/build/${source}
+COPY ${source} ./`;
+    if (installCommand) {
+        dockerfile += `\nRUN ${installCommand}`;
+    }
+    if (buildCommand) {
+        dockerfile += `\nRUN ${buildCommand}`;
+    }
+    fs.writeFile('Dockerfile', dockerfile, (err) => __awaiter(void 0, void 0, void 0, function* () {
+        if (err)
+            throw err;
+    }));
+};
+exports.generateDockerfile = generateDockerfile;
+const createBuild = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
     const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
     const tarStream = tar.pack(context);
     const imageStream = yield docker.buildImage(tarStream, { t: imageTag });
@@ -31,17 +48,17 @@ const createImage = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void
     console.log('Build has completed!');
     return true;
 });
-exports.createImage = createImage;
-const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createBuild = createBuild;
+const exportBuild = ({ image, out }) => __awaiter(void 0, void 0, void 0, function* () {
     const container = yield docker.createContainer({
         Image: image,
-        Cmd: ['cp', artifacts[0], '/opt/out'],
+        Cmd: ['sh', '-c', `cp -R ${out}/* /opt/out/`],
         HostConfig: {
             // Cleanup container
             AutoRemove: true,
             Mounts: [{
                     Target: '/opt/out',
-                    Source: outputPath,
+                    Source: path.join(process.cwd(), out),
                     Type: 'bind',
                     ReadOnly: false,
                 }],
@@ -49,5 +66,5 @@ const runBuild = ({ image, outputPath, artifacts }) => __awaiter(void 0, void 0,
     });
     yield container.start();
 });
-exports.runBuild = runBuild;
+exports.exportBuild = exportBuild;
 //# sourceMappingURL=index.js.map
