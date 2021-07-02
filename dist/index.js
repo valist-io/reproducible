@@ -17,7 +17,7 @@ const path = require('path');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const generateDockerfile = (baseImage, source, buildCommand, installCommand) => {
     let dockerfile = `FROM ${baseImage}
-WORKDIR /opt/build/${source}
+WORKDIR /opt/build
 COPY ${source} ./`;
     if (installCommand) {
         dockerfile += `\nRUN ${installCommand}`;

@@ -4,7 +4,7 @@ const reproducible = require('../../');
 
 (async () => {
   // Generate a DockerFile for Build Pipeline
-  reproducible.generateDockerfile('golang:buster', 'src', 'go build -o ./dist/main main.go');
+  reproducible.generateDockerfile('golang:buster', './', 'go build -o ./dist/main src/main.go');
 
   // Build artifacts using docker build process and export as image
   await reproducible.createBuild('valist-build-image');

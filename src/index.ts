@@ -12,7 +12,7 @@ export const generateDockerfile = (
   installCommand?: string,
 ) => {
   let dockerfile = `FROM ${baseImage}
-WORKDIR /opt/build/${source}
+WORKDIR /opt/build
 COPY ${source} ./`;
 
   if (installCommand) {
