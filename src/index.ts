@@ -24,9 +24,12 @@ COPY ${source} ./`;
   });
 };
 
-export const createBuild = async (imageTag: string) => new Promise((resolve, reject) => {
+export const createBuild = async (imageTag: string, dockerfile: string = '.') => new Promise((resolve, reject) => {
+  let dockerFilePath = '';
+  if (dockerfile) dockerFilePath = `-f ${dockerfile}`;
+  console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
   const spawn = require('child_process').spawn,
-  build = spawn(`docker build -t ${imageTag} .`, { shell: true });
+  build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
 
   build.stdout.on('data', (data: any) => {
     console.log(data.toString());
@@ -40,28 +43,25 @@ export const createBuild = async (imageTag: string) => new Promise((resolve, rej
     code == 0 ? resolve(code) : reject(code);
   });
 
-  console.log('Build has completed!');
   return true;
 });
 
 export const exportBuild = async (image: any, out: any) => new Promise((resolve, reject) => {
   let imageName = 'valist-build';
-  if (image) {
-    imageName = image;
-  }
+  if (image) imageName = image;
   
   const spawn = require('child_process').spawn,
   build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
 
-  build.stdout.on('data', function (data: any) {
+  build.stdout.on('data', (data: any) => {
     console.log(data.toString());
   });
 
-  build.stderr.on('data', function (data: any) {
+  build.stderr.on('data', (data: any) => {
     console.log(data.toString());
   });
 
-  build.on('exit', function (code: any) {
+  build.on('exit', (code: any) => {
     code == 0 ? resolve(code) : reject(code);
   });
 });

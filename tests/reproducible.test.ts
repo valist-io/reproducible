@@ -6,17 +6,13 @@ const reproducible = require('..');
 describe('Test Valist Reproducible', async () => {
   describe('Create Build Image', async () => {
     it('Should return true', async () => {
-      expect(await reproducible.createImage('build-test'));
+      await reproducible.createBuild('valist-build', 'tests/Dockerfile');
     }).timeout(100000);
   });
 
   describe('Run Build Image', async () => {
     it('Should return true', async () => {
-      expect(await reproducible.runBuild({
-        image: 'build-test',
-        outputPath: `${process.cwd()}/tests/dist`,
-        artifacts: ['main'],
-      }));
+      expect(await reproducible.exportBuild('valist-build', 'dist'));
     }).timeout(100000);
   });
 });
