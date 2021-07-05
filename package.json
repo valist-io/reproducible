@@ -12,11 +12,6 @@
   },
   "author": "Zachary Pelkey, Alec Wantoch",
   "license": "MIT",
-  "dependencies": {
-    "dockerode": "^3.3.0",
-    "ipfs": "^0.55.4",
-    "tar-fs": "^2.1.1"
-  },
   "devDependencies": {
     "@types/chai": "^4.2.19",
     "@types/mocha": "^8.2.2",

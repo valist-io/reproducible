@@ -15,9 +15,9 @@ Check out the full `go-hello-world` reproducible build example in the [examples 
 
 ```Dockerfile
 FROM golang:buster
-WORKDIR /opt/build/src
-COPY src ./
-RUN go build -o ./dist/main main.go
+WORKDIR /opt/build
+COPY ./ ./
+RUN go build -o ./dist/main src/main.go
 ```
 
 #### Example Run Script
@@ -27,16 +27,13 @@ import reproducible from 'reproducible';
 
 (async () => {
   // Generate a DockerFile for Build Pipeline
-  reproducible.generateDockerfile('golang:buster', 'src', 'go build -o ./dist/main main.go');
+  await reproducible.generateDockerfile('golang:buster', './', 'go build -o ./dist/main src/main.go');
 
   // Build artifacts using docker build system and export as image
-  await reproducible.createBuild('valist-build-image');
+  await reproducible.createBuild('valist-build');
 
   // Export build artifacts from image
-  await reproducible.exportBuild({
-    image: 'valist-build-image',
-    out: `dist`,
-  });
+  await reproducible.exportBuild('valist-build','dist/main');
 })();
 ```
 
