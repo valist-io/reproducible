@@ -28,9 +28,13 @@ COPY ${source} ./`;
     }));
 };
 exports.generateDockerfile = generateDockerfile;
-const createBuild = (imageTag) => __awaiter(void 0, void 0, void 0, function* () {
+const createBuild = (imageTag, dockerfile = '.') => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
-        const spawn = require('child_process').spawn, build = spawn(`docker build -t ${imageTag} .`, { shell: true });
+        let dockerFilePath = '';
+        if (dockerfile)
+            dockerFilePath = `-f ${dockerfile}`;
+        console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
+        const spawn = require('child_process').spawn, build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
         build.stdout.on('data', (data) => {
             console.log(data.toString());
         });
@@ -40,7 +44,6 @@ const createBuild = (imageTag) => __awaiter(void 0, void 0, void 0, function* ()
         build.on('exit', (code) => {
             code == 0 ? resolve(code) : reject(code);
         });
-        console.log('Build has completed!');
         return true;
     });
 });
@@ -48,17 +51,16 @@ exports.createBuild = createBuild;
 const exportBuild = (image, out) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         let imageName = 'valist-build';
-        if (image) {
+        if (image)
             imageName = image;
-        }
         const spawn = require('child_process').spawn, build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
-        build.stdout.on('data', function (data) {
+        build.stdout.on('data', (data) => {
             console.log(data.toString());
         });
-        build.stderr.on('data', function (data) {
+        build.stderr.on('data', (data) => {
             console.log(data.toString());
         });
-        build.on('exit', function (code) {
+        build.on('exit', (code) => {
             code == 0 ? resolve(code) : reject(code);
         });
     });
