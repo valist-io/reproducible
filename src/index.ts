@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
+// @TODO Refactor to object
 export const generateDockerfile = (
   baseImage: string,
   source: string,
@@ -24,12 +26,11 @@ COPY ${source} ./`;
   });
 };
 
-export const createBuild = async (imageTag: string, dockerfile: string = '.') => new Promise((resolve, reject) => {
+export const createBuild = async (imageTag: string, dockerfile?: string) => new Promise((resolve, reject) => {
   let dockerFilePath = '';
-  if (dockerfile) dockerFilePath = `-f ${dockerfile}`;
-  console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
-  const spawn = require('child_process').spawn,
-  build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
+  if (dockerfile) dockerFilePath = ` -f ${dockerfile}`;
+  console.log(`docker build -t ${imageTag}${dockerFilePath} .`);
+  const build = spawn(`docker build -t ${imageTag}${dockerFilePath} .`, { shell: true });
 
   build.stdout.on('data', (data: any) => {
     console.log(data.toString());
@@ -39,19 +40,12 @@ export const createBuild = async (imageTag: string, dockerfile: string = '.') =>
     console.log(data.toString());
   });
 
-  build.on('exit', (code: any) => {
-    code == 0 ? resolve(code) : reject(code);
-  });
-
-  return true;
+  build.on('exit', (code: any) => (code === 0 ? resolve(code) : reject(code)));
 });
 
 export const exportBuild = async (image: any, out: any) => new Promise((resolve, reject) => {
-  let imageName = 'valist-build';
-  if (image) imageName = image;
-  
-  const spawn = require('child_process').spawn,
-  build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
+  const build = spawn(`docker run -v ${path.join(process.cwd(),
+    path.dirname(out))}:/opt/out -i ${image} cp -R ${out} /opt/out`, { shell: true });
 
   build.stdout.on('data', (data: any) => {
     console.log(data.toString());
@@ -61,7 +55,5 @@ export const exportBuild = async (image: any, out: any) => new Promise((resolve,
     console.log(data.toString());
   });
 
-  build.on('exit', (code: any) => {
-    code == 0 ? resolve(code) : reject(code);
-  });
+  build.on('exit', (code: any) => (code === 0 ? resolve(code) : reject(code)));
 });
