@@ -1,9 +1,5 @@
 const fs = require('fs');
-const Docker = require('dockerode');
-const tar = require('tar-fs');
 const path = require('path');
-
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
 export const generateDockerfile = (
   baseImage: string,
@@ -12,7 +8,7 @@ export const generateDockerfile = (
   installCommand?: string,
 ) => {
   let dockerfile = `FROM ${baseImage}
-WORKDIR /opt/build/${source}
+WORKDIR /opt/build
 COPY ${source} ./`;
 
   if (installCommand) {
@@ -28,42 +24,44 @@ COPY ${source} ./`;
   });
 };
 
-export const createBuild = async (imageTag: string, dockerFilePath?: string) => {
-  const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
-  const tarStream = tar.pack(context);
-  const imageStream = await docker.buildImage(tarStream, { t: imageTag });
+export const createBuild = async (imageTag: string, dockerfile: string = '.') => new Promise((resolve, reject) => {
+  let dockerFilePath = '';
+  if (dockerfile) dockerFilePath = `-f ${dockerfile}`;
+  console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
+  const spawn = require('child_process').spawn,
+  build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
 
-  await new Promise((resolve, reject) => {
-    // Log the container build steps
-    imageStream.pipe(process.stdout);
-
-    docker.modem.followProgress(imageStream, (err: any, res: any) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(res);
-    });
+  build.stdout.on('data', (data: any) => {
+    console.log(data.toString());
   });
 
-  console.log('Build has completed!');
+  build.stderr.on('data', (data: any) => {
+    console.log(data.toString());
+  });
+
+  build.on('exit', (code: any) => {
+    code == 0 ? resolve(code) : reject(code);
+  });
+
   return true;
-};
+});
 
-export const exportBuild = async ({ image, out } : any) => {
-  const container = await docker.createContainer({
-    Image: image,
-    Cmd: ['sh', '-c', `cp -R ${out}/* /opt/out/`], // Won't copy hidden files
-    HostConfig: {
-      // Cleanup container
-      AutoRemove: true,
-      Mounts: [{
-        Target: '/opt/out',
-        Source: path.join(process.cwd(), out),
-        Type: 'bind',
-        ReadOnly: false,
-      }],
-    },
+export const exportBuild = async (image: any, out: any) => new Promise((resolve, reject) => {
+  let imageName = 'valist-build';
+  if (image) imageName = image;
+  
+  const spawn = require('child_process').spawn,
+  build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
+
+  build.stdout.on('data', (data: any) => {
+    console.log(data.toString());
   });
 
-  await container.start();
-};
+  build.stderr.on('data', (data: any) => {
+    console.log(data.toString());
+  });
+
+  build.on('exit', (code: any) => {
+    code == 0 ? resolve(code) : reject(code);
+  });
+});

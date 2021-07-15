@@ -11,13 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportBuild = exports.createBuild = exports.generateDockerfile = void 0;
 const fs = require('fs');
-const Docker = require('dockerode');
-const tar = require('tar-fs');
 const path = require('path');
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const generateDockerfile = (baseImage, source, buildCommand, installCommand) => {
     let dockerfile = `FROM ${baseImage}
-WORKDIR /opt/build/${source}
+WORKDIR /opt/build
 COPY ${source} ./`;
     if (installCommand) {
         dockerfile += `\nRUN ${installCommand}`;
@@ -31,40 +28,42 @@ COPY ${source} ./`;
     }));
 };
 exports.generateDockerfile = generateDockerfile;
-const createBuild = (imageTag, dockerFilePath) => __awaiter(void 0, void 0, void 0, function* () {
-    const context = dockerFilePath ? path.dirname(dockerFilePath) : process.cwd();
-    const tarStream = tar.pack(context);
-    const imageStream = yield docker.buildImage(tarStream, { t: imageTag });
-    yield new Promise((resolve, reject) => {
-        // Log the container build steps
-        imageStream.pipe(process.stdout);
-        docker.modem.followProgress(imageStream, (err, res) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(res);
+const createBuild = (imageTag, dockerfile = '.') => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        let dockerFilePath = '';
+        if (dockerfile)
+            dockerFilePath = `-f ${dockerfile}`;
+        console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
+        const spawn = require('child_process').spawn, build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
+        build.stdout.on('data', (data) => {
+            console.log(data.toString());
         });
+        build.stderr.on('data', (data) => {
+            console.log(data.toString());
+        });
+        build.on('exit', (code) => {
+            code == 0 ? resolve(code) : reject(code);
+        });
+        return true;
     });
-    console.log('Build has completed!');
-    return true;
 });
 exports.createBuild = createBuild;
-const exportBuild = ({ image, out }) => __awaiter(void 0, void 0, void 0, function* () {
-    const container = yield docker.createContainer({
-        Image: image,
-        Cmd: ['sh', '-c', `cp -R ${out}/* /opt/out/`],
-        HostConfig: {
-            // Cleanup container
-            AutoRemove: true,
-            Mounts: [{
-                    Target: '/opt/out',
-                    Source: path.join(process.cwd(), out),
-                    Type: 'bind',
-                    ReadOnly: false,
-                }],
-        },
+const exportBuild = (image, out) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
+        let imageName = 'valist-build';
+        if (image)
+            imageName = image;
+        const spawn = require('child_process').spawn, build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
+        build.stdout.on('data', (data) => {
+            console.log(data.toString());
+        });
+        build.stderr.on('data', (data) => {
+            console.log(data.toString());
+        });
+        build.on('exit', (code) => {
+            code == 0 ? resolve(code) : reject(code);
+        });
     });
-    yield container.start();
 });
 exports.exportBuild = exportBuild;
 //# sourceMappingURL=index.js.map

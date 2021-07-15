@@ -1,4 +1,4 @@
 FROM golang:buster
-WORKDIR /opt/build/src
-COPY src ./
-RUN go build -o ./dist/main main.go
+WORKDIR /opt/build
+COPY ./ ./
+RUN go build -o ./dist/main src/main.go
