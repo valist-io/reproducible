@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportBuild = exports.createBuild = exports.generateDockerfile = void 0;
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
+// @TODO Refactor to object
 const generateDockerfile = (baseImage, source, buildCommand, installCommand) => {
     let dockerfile = `FROM ${baseImage}
 WORKDIR /opt/build
@@ -28,41 +30,33 @@ COPY ${source} ./`;
     }));
 };
 exports.generateDockerfile = generateDockerfile;
-const createBuild = (imageTag, dockerfile = '.') => __awaiter(void 0, void 0, void 0, function* () {
+const createBuild = (imageTag, dockerfile) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         let dockerFilePath = '';
         if (dockerfile)
-            dockerFilePath = `-f ${dockerfile}`;
-        console.log(`docker build -t ${imageTag} ${dockerFilePath} .`);
-        const spawn = require('child_process').spawn, build = spawn(`docker build -t ${imageTag} ${dockerFilePath} .`, { shell: true });
+            dockerFilePath = ` -f ${dockerfile}`;
+        console.log(`docker build -t ${imageTag}${dockerFilePath} .`);
+        const build = spawn(`docker build -t ${imageTag}${dockerFilePath} .`, { shell: true });
         build.stdout.on('data', (data) => {
             console.log(data.toString());
         });
         build.stderr.on('data', (data) => {
             console.log(data.toString());
         });
-        build.on('exit', (code) => {
-            code == 0 ? resolve(code) : reject(code);
-        });
-        return true;
+        build.on('exit', (code) => (code === 0 ? resolve(code) : reject(code)));
     });
 });
 exports.createBuild = createBuild;
 const exportBuild = (image, out) => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
-        let imageName = 'valist-build';
-        if (image)
-            imageName = image;
-        const spawn = require('child_process').spawn, build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${imageName} cp -R ${out} /opt/out`, { shell: true });
+        const build = spawn(`docker run -v ${path.join(process.cwd(), path.dirname(out))}:/opt/out -i ${image} cp -R ${out} /opt/out`, { shell: true });
         build.stdout.on('data', (data) => {
             console.log(data.toString());
         });
         build.stderr.on('data', (data) => {
             console.log(data.toString());
         });
-        build.on('exit', (code) => {
-            code == 0 ? resolve(code) : reject(code);
-        });
+        build.on('exit', (code) => (code === 0 ? resolve(code) : reject(code)));
     });
 });
 exports.exportBuild = exportBuild;

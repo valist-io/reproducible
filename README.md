@@ -27,7 +27,7 @@ import reproducible from 'reproducible';
 
 (async () => {
   // Generate a DockerFile for Build Pipeline
-  await reproducible.generateDockerfile('golang:buster', './', 'go build -o ./dist/main src/main.go');
+  reproducible.generateDockerfile('golang:buster', './', 'go build -o ./dist/main src/main.go');
 
   // Build artifacts using docker build system and export as image
   await reproducible.createBuild('valist-build');
