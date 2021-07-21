@@ -31,7 +31,7 @@ export const createBuild = async (
   dockerfile: string = 'Dockerfile.reproducible',
 ) => new Promise((resolve, reject) => {
   // add ignore files to dockerignore
-  spawnSync(`cat .{git,npm}ignore > ${dockerfile}.dockerignore`, { shell: true });
+  spawnSync(`cat .{git,npm,docker}ignore > ${dockerfile}.dockerignore`, { shell: true });
 
   const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile} . --platform linux/amd64`,
     { shell: true });
