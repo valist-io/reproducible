@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportBuild = exports.createBuild = exports.generateDockerfile = void 0;
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 // @TODO Refactor to object
 const generateDockerfile = (baseImage, source, buildCommand, installCommand) => {
     let dockerfile = `FROM ${baseImage}
@@ -33,7 +33,7 @@ exports.generateDockerfile = generateDockerfile;
 const createBuild = (imageTag, dockerfile = 'Dockerfile.reproducible') => __awaiter(void 0, void 0, void 0, function* () {
     return new Promise((resolve, reject) => {
         // add ignore files to dockerignore
-        spawn(`cat .*ignore > ${dockerfile}.dockerignore`, { shell: true });
+        spawnSync(`cat .*ignore > ${dockerfile}.dockerignore`, { shell: true });
         const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile} . --platform linux/amd64`, { shell: true });
         build.stdout.on('data', (data) => {
             console.log(data.toString());

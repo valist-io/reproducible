@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 // @TODO Refactor to object
 export const generateDockerfile = (
@@ -31,7 +31,7 @@ export const createBuild = async (
   dockerfile: string = 'Dockerfile.reproducible',
 ) => new Promise((resolve, reject) => {
   // add ignore files to dockerignore
-  spawn(`cat .*ignore > ${dockerfile}.dockerignore`, { shell: true });
+  spawnSync(`cat .*ignore > ${dockerfile}.dockerignore`, { shell: true });
 
   const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile} . --platform linux/amd64`,
     { shell: true });
