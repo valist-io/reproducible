@@ -1,10 +1,11 @@
 {
   "name": "reproducible",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A library for creating simple, reproducible environments with docker. Build artifacts reproducibly using the docker build system!",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "prepack": "npm run build",
     "start": "npm run build && node dist/index.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",

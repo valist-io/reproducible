@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 // @TODO Refactor to object
 export const generateDockerfile = (
@@ -21,15 +21,20 @@ COPY ${source} ./`;
     dockerfile += `\nRUN ${buildCommand}`;
   }
 
-  fs.writeFile('Dockerfile', dockerfile, async (err: any) => {
+  fs.writeFile('Dockerfile.reproducible', dockerfile, async (err: any) => {
     if (err) throw err;
   });
 };
 
-export const createBuild = async (imageTag: string, dockerfile?: string) => new Promise((resolve, reject) => {
-  let dockerFilePath = '';
-  if (dockerfile) dockerFilePath = ` -f ${dockerfile}`;
-  const build = spawn(`docker build -t ${imageTag}${dockerFilePath} . --platform linux/amd64`, { shell: true });
+export const createBuild = async (
+  imageTag: string,
+  dockerfile: string = 'Dockerfile.reproducible',
+) => new Promise((resolve, reject) => {
+  // add ignore files to dockerignore
+  spawnSync(`cat .*ignore > ${dockerfile}.dockerignore`, { shell: true });
+
+  const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile} . --platform linux/amd64`,
+    { shell: true });
 
   build.stdout.on('data', (data: any) => {
     console.log(data.toString());
