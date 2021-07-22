@@ -33,7 +33,7 @@ export const createBuild = async (
   // add ignore files to dockerignore
   spawnSync(`cat .{git,npm,docker}ignore > ${dockerfile}.dockerignore`, { shell: true });
 
-  const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile} . --platform linux/amd64`,
+  const build = spawn(`DOCKER_BUILDKIT=1 docker build -t ${imageTag} -f ${dockerfile}`,
     { shell: true });
 
   build.stdout.on('data', (data: any) => {
