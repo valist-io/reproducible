@@ -29,7 +29,7 @@ COPY ${source} ./`;
 export const createBuild = async (imageTag: string, dockerfile?: string) => new Promise((resolve, reject) => {
   let dockerFilePath = '';
   if (dockerfile) dockerFilePath = ` -f ${dockerfile}`;
-  const build = spawn(`docker build -t ${imageTag}${dockerFilePath} . --platform linux/amd64`, { shell: true });
+  const build = spawn(`docker build -t ${imageTag}${dockerFilePath} .`, { shell: true });
 
   build.stdout.on('data', (data: any) => {
     console.log(data.toString());
